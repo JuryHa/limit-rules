@@ -61,7 +61,7 @@
     }
 
     .highlighted {
-      background-color: #ffff99;
+      background-color: #99ffaa;
     }
   </style>
 </head>
@@ -69,6 +69,12 @@
 <body>
   <div class="column" id="input-table">
     <h2>Input Data</h2>
+    <div class="filter-section">
+      <label for="ownerFilter">Filter by Owner ID:</label>
+      <select id="ownerFilter" onchange="filterData()">
+        <option value="all">All Owners</option>
+      </select>
+    </div>
     <table id="input-data">
       <thead>
         <tr>
@@ -123,34 +129,67 @@
   <script>
     // Sample data with added score
     let inputData = [
-      { ownerId: '00501', accountId: '00101', useCaseId: 'Sales-01', recordTypeId: 'X', score: 0.85 },
-      { ownerId: '00501', accountId: '00102', useCaseId: 'Sales-02', recordTypeId: 'X', score: 0.72 },
-      { ownerId: '00501', accountId: '00103', useCaseId: 'Sales-03', recordTypeId: 'X', score: 0.93 },
-      { ownerId: '00501', accountId: '00104', useCaseId: 'Sales-01', recordTypeId: 'Y', score: 0.61 },
-      { ownerId: '00501', accountId: '00105', useCaseId: 'Sales-01', recordTypeId: 'Z', score: 0.79 },
-      { ownerId: '00501', accountId: '00106', useCaseId: 'Email-01', recordTypeId: 'X', score: 0.88 },
-      { ownerId: '00501', accountId: '00107', useCaseId: 'Email-01', recordTypeId: 'X', score: 0.95 },
-      { ownerId: '00501', accountId: '00108', useCaseId: 'Email-01', recordTypeId: 'Y', score: 0.68 },
-      { ownerId: '00502', accountId: '00101', useCaseId: 'Email-02', recordTypeId: 'X', score: 0.76 },
-      { ownerId: '00502', accountId: '00102', useCaseId: 'Email-02', recordTypeId: 'X', score: 0.82 },
-      { ownerId: '00502', accountId: '00103', useCaseId: 'Sales-01', recordTypeId: 'Y', score: 0.91 },
-      { ownerId: '00502', accountId: '00104', useCaseId: 'Email-01', recordTypeId: 'Z', score: 0.67 },
-      { ownerId: '00502', accountId: '00105', useCaseId: 'Sales-01', recordTypeId: 'Z', score: 0.73 },
-      { ownerId: '00502', accountId: '00106', useCaseId: 'Email-01', recordTypeId: 'X', score: 0.89 },
-      { ownerId: '00502', accountId: '00107', useCaseId: 'Email-01', recordTypeId: 'X', score: 0.78 },
-      { ownerId: '00502', accountId: '00108', useCaseId: 'Sales-01', recordTypeId: 'Y', score: 0.86 },
-      { ownerId: '00503', accountId: '00101', useCaseId: 'Email-02', recordTypeId: 'Z', score: 0.94 },
-      { ownerId: '00503', accountId: '00102', useCaseId: 'Email-01', recordTypeId: 'X', score: 0.71 },
-      { ownerId: '00503', accountId: '00103', useCaseId: 'Sales-01', recordTypeId: 'X', score: 0.83 },
-      { ownerId: '00503', accountId: '00104', useCaseId: 'Email-02', recordTypeId: 'Y', score: 0.69 },
-      { ownerId: '00503', accountId: '00105', useCaseId: 'Sales-01', recordTypeId: 'Z', score: 0.77 },
-      { ownerId: '00503', accountId: '00106', useCaseId: 'Sales-01', recordTypeId: 'X', score: 0.92 },
-      { ownerId: '00503', accountId: '00107', useCaseId: 'Email-02', recordTypeId: 'Y', score: 0.84 },
-      { ownerId: '00503', accountId: '00108', useCaseId: 'Sales-01', recordTypeId: 'Y', score: 0.75 }
-    ];
+    { ownerId: '00501', accountId: '00101', useCaseId: 'Sales-01', recordTypeId: 'X', score: 0.85, combination: '00501_00101' },
+    { ownerId: '00501', accountId: '00102', useCaseId: 'Sales-02', recordTypeId: 'X', score: 0.72, combination: '00501_00102' },
+    { ownerId: '00501', accountId: '00103', useCaseId: 'Sales-03', recordTypeId: 'X', score: 0.93, combination: '00501_00103' },
+    { ownerId: '00501', accountId: '00104', useCaseId: 'Sales-01', recordTypeId: 'Y', score: 0.61, combination: '00501_00104' },
+    { ownerId: '00501', accountId: '00105', useCaseId: 'Sales-01', recordTypeId: 'Z', score: 0.79, combination: '00501_00105' },
+    { ownerId: '00502', accountId: '00101', useCaseId: 'Email-02', recordTypeId: 'X', score: 0.76, combination: '00502_00101' },
+    { ownerId: '00502', accountId: '00102', useCaseId: 'Email-02', recordTypeId: 'X', score: 0.82, combination: '00502_00102' },
+    { ownerId: '00502', accountId: '00103', useCaseId: 'Sales-01', recordTypeId: 'Y', score: 0.91, combination: '00502_00103' },
+    { ownerId: '00502', accountId: '00104', useCaseId: 'Email-01', recordTypeId: 'Z', score: 0.67, combination: '00502_00104' },
+    { ownerId: '00502', accountId: '00105', useCaseId: 'Sales-01', recordTypeId: 'Z', score: 0.73, combination: '00502_00105' },
+    { ownerId: '00503', accountId: '00101', useCaseId: 'Email-02', recordTypeId: 'Z', score: 0.94, combination: '00503_00101' },
+    { ownerId: '00503', accountId: '00102', useCaseId: 'Email-01', recordTypeId: 'X', score: 0.71, combination: '00503_00102' },
+    { ownerId: '00503', accountId: '00103', useCaseId: 'Sales-01', recordTypeId: 'X', score: 0.83, combination: '00503_00103' },
+    { ownerId: '00503', accountId: '00104', useCaseId: 'Email-02', recordTypeId: 'Y', score: 0.69, combination: '00503_00104' },
+    { ownerId: '00503', accountId: '00105', useCaseId: 'Sales-01', recordTypeId: 'Z', score: 0.77, combination: '00503_00105' },
+    { ownerId: '00501', accountId: '00101', useCaseId: 'Sales-02', recordTypeId: 'X', score: 0.87, combination: '00501_00101' },
+    { ownerId: '00501', accountId: '00102', useCaseId: 'Email-02', recordTypeId: 'Y', score: 0.74, combination: '00501_00102' },
+    { ownerId: '00501', accountId: '00103', useCaseId: 'Sales-01', recordTypeId: 'Z', score: 0.90, combination: '00501_00103' },
+    { ownerId: '00501', accountId: '00104', useCaseId: 'Email-01', recordTypeId: 'X', score: 0.81, combination: '00501_00104' },
+    { ownerId: '00501', accountId: '00105', useCaseId: 'Sales-03', recordTypeId: 'Y', score: 0.66, combination: '00501_00105' },
+    { ownerId: '00501', accountId: '00106', useCaseId: 'Email-02', recordTypeId: 'Z', score: 0.88, combination: '00501_00106' },
+    { ownerId: '00502', accountId: '00101', useCaseId: 'Sales-01', recordTypeId: 'X', score: 0.93, combination: '00502_00101' },
+    { ownerId: '00502', accountId: '00102', useCaseId: 'Email-01', recordTypeId: 'Y', score: 0.77, combination: '00502_00102' },
+    { ownerId: '00502', accountId: '00103', useCaseId: 'Sales-02', recordTypeId: 'Z', score: 0.85, combination: '00502_00103' },
+    { ownerId: '00502', accountId: '00104', useCaseId: 'Email-02', recordTypeId: 'X', score: 0.70, combination: '00502_00104' },
+    { ownerId: '00502', accountId: '00105', useCaseId: 'Sales-01', recordTypeId: 'Y', score: 0.89, combination: '00502_00105' },
+    { ownerId: '00503', accountId: '00101', useCaseId: 'Email-01', recordTypeId: 'Z', score: 0.82, combination: '00503_00101' },
+    { ownerId: '00503', accountId: '00102', useCaseId: 'Sales-03', recordTypeId: 'X', score: 0.94, combination: '00503_00102' },
+    { ownerId: '00503', accountId: '00103', useCaseId: 'Email-02', recordTypeId: 'Y', score: 0.76, combination: '00503_00103' },
+    { ownerId: '00503', accountId: '00104', useCaseId: 'Sales-01', recordTypeId: 'Z', score: 0.88, combination: '00503_00104' },
+    { ownerId: '00503', accountId: '00105', useCaseId: 'Email-01', recordTypeId: 'X', score: 0.91, combination: '00503_00105' },
+        // Additional data with more combinations
+        { ownerId: '00501', accountId: '00101', useCaseId: 'Sales-04', recordTypeId: 'X', score: 0.96, combination: '00501_00101' },
+        { ownerId: '00501', accountId: '00102', useCaseId: 'Email-03', recordTypeId: 'Y', score: 0.84, combination: '00501_00102' },
+        { ownerId: '00501', accountId: '00103', useCaseId: 'Sales-02', recordTypeId: 'Z', score: 0.78, combination: '00501_00103' },
+        { ownerId: '00501', accountId: '00104', useCaseId: 'Email-03', recordTypeId: 'X', score: 0.92, combination: '00501_00104' },
+        { ownerId: '00501', accountId: '00105', useCaseId: 'Sales-04', recordTypeId: 'Y', score: 0.87, combination: '00501_00105' },
+        { ownerId: '00502', accountId: '00101', useCaseId: 'Email-03', recordTypeId: 'Z', score: 0.95, combination: '00502_00101' },
+        { ownerId: '00502', accountId: '00102', useCaseId: 'Sales-04', recordTypeId: 'X', score: 0.89, combination: '00502_00102' },
+        { ownerId: '00502', accountId: '00103', useCaseId: 'Email-03', recordTypeId: 'Y', score: 0.75, combination: '00502_00103' },
+        { ownerId: '00502', accountId: '00104', useCaseId: 'Sales-02', recordTypeId: 'Z', score: 0.86, combination: '00502_00104' },
+        { ownerId: '00502', accountId: '00105', useCaseId: 'Email-03', recordTypeId: 'X', score: 0.93, combination: '00502_00105' },
+        { ownerId: '00503', accountId: '00101', useCaseId: 'Sales-04', recordTypeId: 'Y', score: 0.97, combination: '00503_00101' },
+        { ownerId: '00503', accountId: '00102', useCaseId: 'Email-03', recordTypeId: 'Z', score: 0.88, combination: '00503_00102' },
+        { ownerId: '00503', accountId: '00103', useCaseId: 'Sales-04', recordTypeId: 'X', score: 0.79, combination: '00503_00103' },
+        { ownerId: '00503', accountId: '00104', useCaseId: 'Email-03', recordTypeId: 'Y', score: 0.94, combination: '00503_00104' },
+        { ownerId: '00503', accountId: '00105', useCaseId: 'Sales-02', recordTypeId: 'Z', score: 0.85, combination: '00503_00105' }
+];
 
     // Sort inputData based on score
     inputData.sort((a, b) => b.score - a.score);
+
+    
+    // Function to filter data based on owner
+    function filterData() {
+      const selectedOwner = document.getElementById('ownerFilter').value;
+      const filteredData = selectedOwner === 'all' 
+        ? inputData 
+        : inputData.filter(row => row.ownerId === selectedOwner);
+      populateTable('input-data', filteredData);
+    }
 
     // Function to populate table
     function populateTable(tableId, data, highlightedRows = new Set()) {
