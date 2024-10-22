@@ -3,13 +3,232 @@
 
 <head>
   <meta charset="UTF-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Document</title>
+  <title>Data Limiter Web Application</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .column {
+      width: 30%;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+    }
+
+    th,
+    td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+
+    th {
+      background-color: #f2f2f2;
+    }
+
+    .limit-rules {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .limit-rules label {
+      margin-top: 10px;
+    }
+
+    .limit-rules input {
+      margin-bottom: 10px;
+    }
+
+    button {
+      margin-top: 10px;
+      padding: 10px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    .highlighted {
+      background-color: #ffff99;
+    }
+  </style>
 </head>
 
 <body>
+  <div class="column" id="input-table">
+    <h2>Input Data</h2>
+    <table id="input-data">
+      <thead>
+        <tr>
+          <th>ownerId</th>
+          <th>accountId</th>
+          <th>useCaseId</th>
+          <th>recordTypeId</th>
+          <th>score</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Data will be inserted here by JavaScript -->
+      </tbody>
+    </table>
+  </div>
 
+  <div class="column limit-rules">
+    <h2>Limit Rules</h2>
+    <label for="owner-account-combo">Owner/Account Combination:</label>
+    <input type="number" id="owner-account-combo" min="0" value="2">
+
+    <label for="max-sales-usecases">Max Number of Sales Usecases:</label>
+    <input type="number" id="max-sales-usecases" min="0" value="3">
+
+    <label for="max-x-record-type">Max Number of X Record Type:</label>
+    <input type="number" id="max-x-record-type" min="0" value="2">
+
+    <label for="max-y-record-type">Max Number of Y Record Type:</label>
+    <input type="number" id="max-y-record-type" min="0" value="1">
+
+    <button onclick="applyLimits()">Apply Limits</button>
+  </div>
+
+  <div class="column" id="output-table">
+    <h2>Output Data</h2>
+    <table id="output-data">
+      <thead>
+        <tr>
+          <th>ownerId</th>
+          <th>accountId</th>
+          <th>useCaseId</th>
+          <th>recordTypeId</th>
+          <th>score</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Filtered data will be inserted here by JavaScript -->
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    // Sample data with added score
+    let inputData = [
+      { ownerId: '00501', accountId: '00101', useCaseId: 'Sales-01', recordTypeId: 'X', score: 0.85 },
+      { ownerId: '00501', accountId: '00102', useCaseId: 'Sales-02', recordTypeId: 'X', score: 0.72 },
+      { ownerId: '00501', accountId: '00103', useCaseId: 'Sales-03', recordTypeId: 'X', score: 0.93 },
+      { ownerId: '00501', accountId: '00104', useCaseId: 'Sales-01', recordTypeId: 'Y', score: 0.61 },
+      { ownerId: '00501', accountId: '00105', useCaseId: 'Sales-01', recordTypeId: 'Z', score: 0.79 },
+      { ownerId: '00501', accountId: '00106', useCaseId: 'Email-01', recordTypeId: 'X', score: 0.88 },
+      { ownerId: '00501', accountId: '00107', useCaseId: 'Email-01', recordTypeId: 'X', score: 0.95 },
+      { ownerId: '00501', accountId: '00108', useCaseId: 'Email-01', recordTypeId: 'Y', score: 0.68 },
+      { ownerId: '00502', accountId: '00101', useCaseId: 'Email-02', recordTypeId: 'X', score: 0.76 },
+      { ownerId: '00502', accountId: '00102', useCaseId: 'Email-02', recordTypeId: 'X', score: 0.82 },
+      { ownerId: '00502', accountId: '00103', useCaseId: 'Sales-01', recordTypeId: 'Y', score: 0.91 },
+      { ownerId: '00502', accountId: '00104', useCaseId: 'Email-01', recordTypeId: 'Z', score: 0.67 },
+      { ownerId: '00502', accountId: '00105', useCaseId: 'Sales-01', recordTypeId: 'Z', score: 0.73 },
+      { ownerId: '00502', accountId: '00106', useCaseId: 'Email-01', recordTypeId: 'X', score: 0.89 },
+      { ownerId: '00502', accountId: '00107', useCaseId: 'Email-01', recordTypeId: 'X', score: 0.78 },
+      { ownerId: '00502', accountId: '00108', useCaseId: 'Sales-01', recordTypeId: 'Y', score: 0.86 },
+      { ownerId: '00503', accountId: '00101', useCaseId: 'Email-02', recordTypeId: 'Z', score: 0.94 },
+      { ownerId: '00503', accountId: '00102', useCaseId: 'Email-01', recordTypeId: 'X', score: 0.71 },
+      { ownerId: '00503', accountId: '00103', useCaseId: 'Sales-01', recordTypeId: 'X', score: 0.83 },
+      { ownerId: '00503', accountId: '00104', useCaseId: 'Email-02', recordTypeId: 'Y', score: 0.69 },
+      { ownerId: '00503', accountId: '00105', useCaseId: 'Sales-01', recordTypeId: 'Z', score: 0.77 },
+      { ownerId: '00503', accountId: '00106', useCaseId: 'Sales-01', recordTypeId: 'X', score: 0.92 },
+      { ownerId: '00503', accountId: '00107', useCaseId: 'Email-02', recordTypeId: 'Y', score: 0.84 },
+      { ownerId: '00503', accountId: '00108', useCaseId: 'Sales-01', recordTypeId: 'Y', score: 0.75 }
+    ];
+
+    // Sort inputData based on score
+    inputData.sort((a, b) => b.score - a.score);
+
+    // Function to populate table
+    function populateTable(tableId, data, highlightedRows = new Set()) {
+      const tableBody = document.querySelector(`#${tableId} tbody`);
+      tableBody.innerHTML = '';
+      data.forEach((row, index) => {
+        const tr = document.createElement('tr');
+        if (highlightedRows.has(index)) {
+          tr.classList.add('highlighted');
+        }
+        Object.values(row).forEach(value => {
+          const td = document.createElement('td');
+          td.textContent = typeof value === 'number' ? value.toFixed(2) : value;
+          tr.appendChild(td);
+        });
+        tableBody.appendChild(tr);
+      });
+    }
+
+    // Populate input table on page load
+    populateTable('input-data', inputData);
+
+    // Function to apply limits
+    function applyLimits() {
+      const ownerAccountCombo = parseInt(document.getElementById('owner-account-combo').value);
+      const maxSalesUsecases = parseInt(document.getElementById('max-sales-usecases').value);
+      const maxXRecordType = parseInt(document.getElementById('max-x-record-type').value);
+      const maxYRecordType = parseInt(document.getElementById('max-y-record-type').value);
+
+      let filteredData = [];
+      let highlightedRows = new Set();
+      let ownerAccountCombos = {};
+      let ownerSalesUsecases = {};
+      let ownerXRecordTypes = {};
+      let ownerYRecordTypes = {};
+
+      inputData.forEach((row, index) => {
+        const { ownerId, accountId, useCaseId, recordTypeId } = row;
+        const ownerAccountKey = `${ownerId}-${accountId}`;
+
+        // Check owner/account combination
+        ownerAccountCombos[ownerAccountKey] = (ownerAccountCombos[ownerAccountKey] || 0) + 1;
+        if (ownerAccountCombos[ownerAccountKey] > ownerAccountCombo) {
+          return;
+        }
+
+        // Check max number of sales usecases
+        if (useCaseId.startsWith('Sales')) {
+          ownerSalesUsecases[ownerId] = (ownerSalesUsecases[ownerId] || 0) + 1;
+          if (ownerSalesUsecases[ownerId] > maxSalesUsecases) {
+            return;
+          }
+        }
+
+        // Check max number of X record type
+        if (recordTypeId === 'X') {
+          ownerXRecordTypes[ownerId] = (ownerXRecordTypes[ownerId] || 0) + 1;
+          if (ownerXRecordTypes[ownerId] > maxXRecordType) {
+            return;
+          }
+        }
+
+        // Check max number of Y record type
+        if (recordTypeId === 'Y') {
+          ownerYRecordTypes[ownerId] = (ownerYRecordTypes[ownerId] || 0) + 1;
+          if (ownerYRecordTypes[ownerId] > maxYRecordType) {
+            return;
+          }
+        }
+
+        filteredData.push(row);
+        highlightedRows.add(index);
+      });
+
+      populateTable('output-data', filteredData);
+      populateTable('input-data', inputData, highlightedRows);
+    }
+  </script>
 </body>
 
 </html>
